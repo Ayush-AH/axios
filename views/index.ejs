@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+
+    <div class="w-full h-screen bg-black flex items-center justify-center">
+        <form action="" class="flex flex-col w-[20%] " enctype="multipart/form-data">
+            <h2 id="isavailable" class="text-sm leading-none mb-4"></h2>
+            <div class="relative">
+                <span id="usertag"
+                    class="text-zinc-400 z-10 px-1 absolute top-1/2 pointer-events-none -translate-y-1/2 left-2">Username</span>
+                <input id="username"
+                    class="px-3 w-full  py-1 bg-transparent outline-none relative border border-zinc-300 rounded text-white"
+                    type="text" name="username">
+            </div>
+            <input class="px-3 py-1  mt-2 bg-transparent outline-none border border-zinc-300 rounded text-white"
+                type="password" autocomplete="off" name="password" placeholder="Password">
+            <input id="image" class="px-3 py-1  mt-2 bg-transparent text-white" type="file" name="image"
+                placeholder="Password">
+            <input class="text-white mt-3 font-semibold px-3 py-1 hover:bg-blue-800 cursor-pointer bg-blue-600 rounded"
+                type="submit" placeholder="Submit">
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.5/axios.min.js"
+        integrity="sha512-01Pe9P3mJM/4c80VuoYEGHlspKGbd9uWQe9HtdLsdTqV0CS1kz8ca44sinVEXEvlZNciMmsAjeEbm5ZxHC7yYg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        var nameInput = document.querySelector("#username")
+
+        nameInput.addEventListener("focus", function () {
+            document.querySelector("#usertag").classList.add("bg-black", "text-xs", "top-0")
+        })
+        nameInput.addEventListener("blur", function () {
+            if (nameInput.value === "") {
+                document.querySelector("#usertag").classList.remove("bg-black", "text-xs", "top-0")
+            }
+        })
+
+        nameInput.addEventListener("input", function (e) {
+            var username = nameInput.value
+
+
+            axios.post("/api/checkuser", { username })
+                .then(data => {
+
+                    if (data.data.isAvailable) {
+                        if (this.value.trim() !== "") {
+                            document.querySelector("#isavailable").textContent = data.data.message
+                            document.querySelector("#isavailable").style.color = "green"
+                            nameInput.classList.remove("border-red-600")
+                            nameInput.classList.remove("border-zinc-300")
+                            nameInput.classList.add("border-green-600")
+                            document.querySelector("#usertag").style.color = "green"
+                        }
+                        else {
+                            document.querySelector("#isavailable").textContent = ""
+                            nameInput.classList.remove("border-red-600")
+                            nameInput.classList.remove("border-green-600")
+                            nameInput.classList.add("border-zinc-300")
+                            document.querySelector("#usertag").style.color = "#8E8E91"
+                        }
+                    }
+                    else {
+                        nameInput.classList.add("border-red-600")
+                        document.querySelector("#isavailable").textContent = data.data.message
+                        document.querySelector("#isavailable").style.color = "red"
+                        document.querySelector("#usertag").style.color = "red"
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        })
+
+
+        document.querySelector("form").addEventListener("submit", function (e) {
+            e.preventDefault()
+
+            var formData = new FormData(this)
+            const data = {};
+
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            axios.post("/testing", data ,{
+                headers:{
+                    "Content-Type":"multipart/form-data"
+                }
+            })
+                .then(response => {
+                    const base64Image = btoa(
+                                String.fromCharCode(...new Uint8Array(response.data.image.data))
+                            );
+                    console.log(base64Image);
+                })
+                .catch(err => {
+                    console.log(err);
+
+                })
+        })
+
+
+
+    </script>
+
+</body>
+
+</html>
